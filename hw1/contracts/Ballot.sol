@@ -94,9 +94,10 @@ contract Ballot {
         payable(owner).transfer(fee * paymentAmount * totalVotes);
     }
 
-    function voteFor(uint candidateIndex) public {
+    function voteFor(uint candidateIndex) public payable {
         require(block.timestamp < votingFinishDate, "Voting is finished.");
         require(!voters[msg.sender].voted, "Voter has already voted.");
+        require(msg.value == paymentAmount, "Payment amount is wrong.");
 
         voters[msg.sender].voted = true;
         voters[msg.sender].voteIndex = candidateIndex;
