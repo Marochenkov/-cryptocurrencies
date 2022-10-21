@@ -58,6 +58,8 @@ contract Ballot {
     function withdrawFees() OnlyOwner public {
         require(block.timestamp >= votingFinishDate, "Voting is not finished.");
 
+        // count max amount of votes
+
         uint winningVotesCount = 0;
         uint totalVotes = 0;
 
@@ -68,6 +70,8 @@ contract Ballot {
             totalVotes += candidates[i].votesCount;
         }
 
+        // count amount of winners
+
         uint winnersCount = 0;
 
         for (uint i = 0; i < candidates.length; i++) {
@@ -75,6 +79,8 @@ contract Ballot {
                 winnersCount += 1;
             }
         }
+
+        // transfer money to winners
 
         uint transferAmount = (100 - fee) * paymentAmount * totalVotes / winnersCount;
         assert(transferAmount >= 0);
@@ -84,6 +90,8 @@ contract Ballot {
                 candidates[i].account.transfer(transferAmount);
             }
         }
+
+        payable(owner).transfer(fee * paymentAmount * totalVotes);
     }
 
     function voteFor(uint candidateIndex) public {
