@@ -25,4 +25,15 @@ describe("Ballot", function () {
             expect(err)
         }
     })
+
+    it("test initial balance", async function () {
+        expect(await ballot.balance()).to.eq(0)
+    });
+
+    it("test balance after one vote", async function() {
+        await ballot.createVoting(1, 1, 0, [acc1.getAddress()])
+        await ballot.connect(acc2).voteFor(0, { value: 1})
+        expect(await ballot.balance()).to.eq(1)
+        
+    })
 })

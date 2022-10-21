@@ -113,4 +113,8 @@ contract Ballot {
             candidates: candidates
         });
     }
+
+    function balance() view public returns (uint256) {
+        return address(this).balance;
+    }
 }
