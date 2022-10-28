@@ -35,12 +35,17 @@ contract Ballot {
     }
 
     modifier OnlyOwner{
-        if (msg.sender == owner) {
-            _;
-        }
+        require(msg.sender == owner, "Permission denied.");
+        _;
+    }
+
+    modifier CheckFinishDate{
+        require(block.timestamp >= votingFinishDate, "Voting is not finished.");
+        _;
     }
 
     function createVoting(uint durationInDays, uint paymentAmount_, uint fee_, address[] memory candidates_) OnlyOwner public {
+        require(fee_ <= paymentAmount_, "Fee must be less than X.");
         votingFinishDate = block.timestamp + (durationInDays * 1 days);
         paymentAmount = paymentAmount_;
         fee = fee_;
@@ -55,9 +60,17 @@ contract Ballot {
         }
     }
 
-    function withdrawFees() OnlyOwner public {
-        require(block.timestamp >= votingFinishDate, "Voting is not finished.");
+    function withdrawFees() OnlyOwner CheckFinishDate public {
+        uint totalVotes = 0;
+        
+        for (uint i = 0; i < candidates.length; i++) {
+            totalVotes += candidates[i].votesCount;
+        }
 
+        payable(owner).transfer(fee * totalVotes);
+    }
+
+    function finishVoting() OnlyOwner CheckFinishDate public {
         // count max amount of votes
 
         uint winningVotesCount = 0;
@@ -82,22 +95,23 @@ contract Ballot {
 
         // transfer money to winners
 
-        uint transferAmount = (100 - fee) * paymentAmount * totalVotes / winnersCount;
+        uint transferAmount = (paymentAmount - fee) * totalVotes / winnersCount;
         assert(transferAmount >= 0);
+
 
         for (uint i = 0; i < candidates.length; i++) {
             if (candidates[i].votesCount == winningVotesCount) {
                 candidates[i].account.transfer(transferAmount);
             }
         }
-
-        payable(owner).transfer(fee * paymentAmount * totalVotes);
     }
+
 
     function voteFor(uint candidateIndex) public payable {
         require(block.timestamp < votingFinishDate, "Voting is finished.");
         require(!voters[msg.sender].voted, "Voter has already voted.");
         require(msg.value == paymentAmount, "Payment amount is wrong.");
+        require(candidateIndex < candidates.length, "Candidates index out of range.");
 
         voters[msg.sender].voted = true;
         voters[msg.sender].voteIndex = candidateIndex;
