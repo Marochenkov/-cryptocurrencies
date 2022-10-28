@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { BN } = require("@openzeppelin/test-helpers");
 
 describe("Ballot", function () {
     let owner
